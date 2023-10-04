@@ -1,2 +1,4 @@
 /_env
-access.py
+/access
+/log
+/__pycache__

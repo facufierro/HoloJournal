@@ -35,3 +35,7 @@ class Routes:
                 return redirect("/ask_permission", code=302)
         except Exception as e:
             Log.error(f"Failed to retrieve posts: {e}")
+
+    @classmethod
+    def classify_by_topic(cls):
+        pass

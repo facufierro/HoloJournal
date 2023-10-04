@@ -12,3 +12,7 @@ class DataManager:
         except Exception as e:
             Log.error(e)
             return None
+
+    @staticmethod
+    def classify_by_topic(data_frame: pd.DataFrame) -> pd.DataFrame:
+        pass
