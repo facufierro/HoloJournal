@@ -1,8 +1,9 @@
 # routes.py
 from flask import request, jsonify, redirect
-import pandas as pd
-from data.meta_api_handler import MetaApiHandler
+from utils.meta_api_handler import MetaApiHandler
 from access.meta_access import ACCESS_TOKEN
+from utils.data_manager import DataManager
+from utils.debug import Log
 
 
 class Routes:
@@ -10,24 +11,27 @@ class Routes:
 
     @staticmethod
     def index():
-        return "Welcome to our project!"
+        return '<h1>HoloJournal</h1></br><h3><a href="/myposts">My Posts</a></h3>'
 
     @staticmethod
     def ask_permission():
-        return "Do you give permission to fetch your Facebook data? If yes, go to /myposts?permission=yes"
+        return '<h1>HoloJournal</h1></br><h3>Do you give permission to get your Facebook data?</br> <a href="/myposts?permission=yes">Yes</a> / <a href="/">No</a><h3>'
 
     @classmethod
-    def my_posts(cls):
+    def my_posts(cls, limit: int = 10):
         # Check if user has given permission
-        if 'permission' in request.args and request.args['permission'] == 'yes':
-            data = cls.meta_handler.fetch_data('me/posts', {'limit': 10})  # Fetch the last 10 posts
+        try:
+            if 'permission' in request.args and request.args['permission'] == 'yes':
+                data = cls.meta_handler.fetch_data('me/posts', {'limit': limit})  # Fetch the last 10 posts
 
-            # Check if data contains the 'data' key
-            if 'data' in data:
-                df = pd.DataFrame(data['data'])
-                return df.head().to_json(orient='records')
+                df = DataManager.convert_to_dataframe(data)  # Convert the data to a DataFrame
+
+                if df is not None:
+                    return df.head().to_json(orient='records')
+                else:
+                    return jsonify(data)  # Return the original data, which might contain an error message
             else:
-                return jsonify(data)  # Return the original data, which might contain an error message
-        else:
-            # Redirect to permission asking route
-            return redirect("/ask_permission", code=302)
+                # Redirect to permission asking route
+                return redirect("/ask_permission", code=302)
+        except Exception as e:
+            Log.error(f"Failed to retrieve posts: {e}")
